@@ -198,6 +198,8 @@ TPAIC <- lm(data = Paul.naomit, tp_ug ~ depth + dissolvedOxygen +
 #Choose a model by AIC in a Stepwise Algorithm
 step(TPAIC)
 TPmodel <- lm(data = Paul.naomit, tp_ug ~ dissolvedOxygen + temperature_C + tn_ug)
-summary(TPmodel)
+summary(TPmodel) 
+
+# you want a higher AIC, so always remove variables that are below your start AIC. you want to repeat the removal process until you see (none). thats why its called a step algorithm
 
 ```
