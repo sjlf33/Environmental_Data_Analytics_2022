@@ -27,22 +27,21 @@ The completed exercise is due on Monday, February 28 at 7:00 pm.
 
 ```{r setup}
 #1 
-getwd() 
+#getwd() 
 library(agricolae)
 library(tidyverse)
 library(lubridate) 
-library(dplyr)
+library(dplyr) 
 
-Lakes <- read.csv("./Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv", stringsAsFactors = TRUE, header = TRUE) 
+Lakes <- read.csv("../Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv", stringsAsFactors = TRUE, header = TRUE) 
 
 Lakes$sampledate <- as.Date(Lakes$sampledate, format = "%m/%d/%y") 
 
-# any idea how to get rid of 0084, and get 1984?
 
 #2 
 mytheme <-theme_classic(base_size = 14) +
-  theme(axis.text = element_text(color = "black"), 
-        legend.position = "top") 
+  theme(axis.text = element_text(color = "black")) 
+        #legend.position = "top") 
 theme_set(mytheme)
 
 ```
@@ -72,15 +71,14 @@ JulyLakes <- Lakes %>%
   filter(!is.na(temperature_C)) 
   
 #5  
-JulyLakes.PLOT <- ggplot(JulyLakes, aes(x = temperature_C, y = depth, color = depth))+
+JulyLakes.PLOT <- ggplot(JulyLakes, aes(x = depth, y = temperature_C, color = depth))+
   geom_point()+ 
   geom_smooth(method = lm, color = "pink")+ 
-  xlim(0,35)+
-  ylim(0,18)+ 
-  xlab(expression(paste("Temperature  " , degree,"C")))+ 
-  ylab(expression(paste("Depth  ", "(m)")))+
-  scale_y_reverse()+ 
-  #scale
+  xlim(0,18)+
+  ylim(0,35)+ 
+  xlab(expression(paste("Depth  ", "(m)")))+ 
+  ylab(expression(paste("Temperature  " , degree,"C"))) 
+  #scale_color_brewer(direction = -1)
 print(JulyLakes.PLOT)   
 
 #switch axis- from luana
@@ -88,7 +86,6 @@ print(JulyLakes.PLOT)
 # scale_y_continous
 # labs(fill ="legend title")
 # scale_fill_manual(legend_title, values="new title")
-
 
 ```
 
@@ -105,9 +102,11 @@ print(JulyLakes.PLOT)
 JulyLakes.regression <- lm(data = JulyLakes, temperature_C ~ depth)
 summary(JulyLakes.regression)  
 # do i take the log? because its not linear? yes to log of one variable. 
+# Luana says the log isn't required for this assignment but recommends it.
 
 # we want a high r-squared (.95)
-# p- values show the sigificance of the regression, we want a small p-value! 
+# p- values show the sigificance of the regression,  
+# we want a small p-value! 
 # if the r squared is 0, you should add more variables 
 # to choose new variables, you can test first for correlation between variables OR look at interaction factor -- (sometimes you have explanatory variables that are already highly correlated)
 # so instead of calculating metrics in pairs, we use the correlation matrix 
@@ -119,10 +118,8 @@ summary(JulyLakes.regression)
 
 8. Interpret your model results in words. Include how much of the variability in temperature is explained by changes in depth, the degrees of freedom on which this finding is based, and the statistical significance of the result. Also mention how much temperature is predicted to change for every 1m change in depth. 
 
-> Answer: For every 1 (m) increase in depth, temperature decreases by 1.95 degree Celsius.The r-squared shows a 74% of the variability in changes in temperature is explained by changes in depth. 
-The degrees of freedom are 9726.
-The statistical significance shows shows a very low p-value.
-the depth changes first than the temp changes, it is dependent.
+> Answer: For every 1m increase in depth, temperature decreases by 1.95 degrees Celsius.The r-squared shows that 73.87% of the variability in changes in temperature is explained by changes in depth. The degrees of freedom are 9726.The statistical significance shows a very low p-value.
+
 ---
 
 ## Multiple regression
@@ -134,22 +131,35 @@ Let's tackle a similar question from a different approach. Here, we want to expl
 10. Run a multiple regression on the recommended set of variables. 
 
 ```{r temperature.model}
-#9
+#9  
+JulyAIC <- lm(data = JulyLakes, temperature_C ~ depth + year4 + daynum)
+summary(JulyAIC)
 
+step(JulyAIC)  
+# all 3 variables are higher than my start AIC (26065) 
+# so I will include variables: depth, year4, and daynum
+NewJulymodel <- lm(data = JulyLakes, temperature_C ~ depth + year4 + daynum)
+summary(NewJulymodel)  
 
+Julymodel2 <- lm(data = JulyLakes, temperature_C ~ depth + daynum)
+summary(Julymodel2) 
+ 
+AIC(Julymodel2, NewJulymodel)  
+# lower AIC with all variables
 
-#10
+#10  
+JulyMULT.REGRESS <- lm(data = subset(JulyLakes), temperature_C ~ depth + year4 + daynum)
+summary(JulyMULT.REGRESS) 
 
-# you want a higher AIC, so always remove variables that are below your start AIC. you want to repeat the removal process until you see (none). thats why its called a step algorithm
-# everytime you add a explanatory variable you lose a degree of freedom. 
+# every time you add a explanatory variable you lose a degree of freedom. 
 
 ```
 
 11. What is the final set of explanatory variables that the AIC method suggests we use to predict temperature in our multiple regression? How much of the observed variance does this model explain? Is this an improvement over the model using only depth as the explanatory variable?
 
-> Answer: 
-
-
+> Answer:The final set of explanatory variables that the AIC method suggests we use to predict temperature in our multiple regression are depth, year4, and daynum.
+The model explains 74.11% of the observed variance.  
+This is a slight improvement over the model using only depth as the explanatory variable.
 
 ---
 ## Analysis of Variance
@@ -157,41 +167,58 @@ Let's tackle a similar question from a different approach. Here, we want to expl
 12. Now we want to see whether the different lakes have, on average, different temperatures in the month of July. Run an ANOVA test to complete this analysis. (No need to test assumptions of normality or similar variances.) Create two sets of models: one expressed as an ANOVA models and another expressed as a linear model (as done in our lessons).
 
 ```{r anova.model}
-#12
+#12  
 
+# ANOVA model  
+summary(JulyLakes$lakename)
+
+July.Lakes.anova <- aov(data = JulyLakes, temperature_C ~ lakename)
+summary(July.Lakes.anova)
+
+# Linear model 
+# Format ANOVA as lm 
+July.Lakes.anova_lm <- lm(data = JulyLakes, temperature_C ~ lakename)
+summary(July.Lakes.anova_lm)
 
 ```
 
 13. Is there a significant difference in mean temperature among the lakes? Report your findings. 
 
-> Answer: 
-
+> Answer: All lakes have a p-value below 0.05. we reject the null hypothesis, signifying that average temperatures of the lakes are all different. However, Crampton Lake is less significant than East Long Lake, Hummingbird Lake, Paul Lake, Peter Lake, Tuesday Lake, Ward Lake, and West Long Lake (all of these lakes except Crampton Lake have same levels of significance).Despite this Crampton being less significant, it is still below reocommend p-value,therefore we still reject the null hypothesis.
 
 
 14. Create a graph that depicts temperature by depth, with a separate color for each lake. Add a geom_smooth (method = "lm", se = FALSE) for each lake. Make your points 50 % transparent. Adjust your y axis limits to go from 0 to 35 degrees. Clean up your graph to make it pretty. 
 
 ```{r scatterplot.2}
-#14.
-
+#14. 
+FinalGraph <- 
+  ggplot(JulyLakes, aes(y = temperature_C, x = depth, color = lakename))+
+  geom_point(alpha = .5)+ 
+  geom_smooth(method = lm, se = FALSE)+
+  xlim(0,18)+ 
+  ylim(0,35)+ 
+  xlab(expression(paste("Depth  ", "(m)")))+ 
+  ylab(expression(paste("Temperature  " , degree,"C")))
+print(FinalGraph)
 
 ```
 
 15. Use the Tukey's HSD test to determine which lakes have different means.
 
 ```{r tukey.test}
-#15
+#15 
 
+TukeyHSD(July.Lakes.anova)
+LakesMeans <- HSD.test(July.Lakes.anova, "lakename", group = TRUE) 
+LakesMeans
 
 ```
 
 16.From the findings above, which lakes have the same mean temperature, statistically speaking, as Peter Lake? Does any lake have a mean temperature that is statistically distinct from all the other lakes?
 
->Answer:
+>Answer:The lakes that have the same mean temperature (statsitically speaking) as Peter Lake are Paul Lake and Ward Lake. There are no lakes with mean temperatures statistically distinct from all the other lakes. 
 
- 
 
 17. If we were just looking at Peter Lake and Paul Lake. What's another test we might explore to see whether they have distinct mean temperatures? 
 
->Answer: 
-
-
+>Answer: Another test to explore whether Peter Lake and Paul Lake have distinct mean temperatures is a t.test. 
