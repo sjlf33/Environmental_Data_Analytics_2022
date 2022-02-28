@@ -164,13 +164,9 @@ Extracted_temp <-
 
 Extracted_rain <-
 
-
-
 # Exercise 10: Visualize how the trend maps onto the data for both series
 
-
-
-
+  
 
 
 ```
