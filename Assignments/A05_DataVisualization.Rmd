@@ -41,9 +41,9 @@ library(dplyr)
 
 #2    
 
-Nutrients <- read.csv("..//Data/Processed/NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv", stringsAsFactors = TRUE, header = TRUE)
+Nutrients <- read.csv("./Data/Processed/NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv", stringsAsFactors = TRUE, header = TRUE)
 
-Litter <- read.csv("..//Data/Processed/NEON_NIWO_Litter_mass_trap_Processed.csv",  
+Litter <- read.csv("./Data/Processed/NEON_NIWO_Litter_mass_trap_Processed.csv",  
                    stringsAsFactors = TRUE, header = TRUE)
  
 class(Nutrients$sampledate) 
